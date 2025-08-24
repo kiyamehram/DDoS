@@ -3,7 +3,6 @@
 # Personal DDoS Tool
 # Author: [NoneR00tk1t]
 
-# Color Codes
 import threading
 import requests
 import time
@@ -915,3 +914,4 @@ if __name__ == "__main__":
     
 
     print("\n\nCompleted")
+
