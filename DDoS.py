@@ -134,7 +134,6 @@ class AdvancedLoadTester:
             'rudy': self.rudy_attack
         }
         
-        # Validate proxies
         self.validate_proxies()
     
     def _setup_logging(self, log_level: str) -> None:
@@ -914,4 +913,5 @@ if __name__ == "__main__":
     
 
     print("\n\nCompleted")
+
 
